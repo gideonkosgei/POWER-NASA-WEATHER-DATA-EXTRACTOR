@@ -60,8 +60,6 @@ export const genericFunctionSevenParameters = function (param1, param2, param3, 
     headers: param1.headers
   }
 
-  console.log(options);
-
   return new Promise((resolve, reject) => {
     axios(options)
       .then(res => {
@@ -99,15 +97,14 @@ export const upload = function (config, rows, cols,uuid) {
 
 
 //upload
-export const process = function (config,rec_id,long,lat,start_date,end_date,uuid) {
+export const process = function (config,rec_id,long,lat,start_date,end_date) {
 
   const body = {
     "rec_id": rec_id,
     "longitude": long,
     "latitude": lat,
     "end_date" : end_date,
-    "start_date" : start_date,
-    "uuid" :uuid 
+    "start_date" : start_date   
   };
 
   const options = {

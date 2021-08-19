@@ -43,10 +43,10 @@ router.get('/api/v1.0/request-id-all', async (req, res) => {
 });
 
 // fetch geo-points based on uuid
-router.get('/api/v1.0/fetch-geo-points/:uuid', async (req, res) => {
+router.get('/api/v1.0/fetch-geo-points/:id', async (req, res) => {
   const conn = await connection(dbConfig).catch(e => { return e; });
-  const { uuid } = req.params;
-  const sql = `CALL sp_fetch_geo_points(${JSON.stringify(uuid)})`;
+  const { id } = req.params;
+  const sql = `CALL sp_fetch_geo_points(${id})`;
   await query(conn, sql).then(response => { res.status(200).json({ payload: response[0] }) }).catch(e => { res.status(400).json({ status: 400, message: e }) });
 });
 
@@ -55,37 +55,60 @@ router.get('/api/v1.0/fetch-geo-points/:uuid', async (req, res) => {
 router.post('/api/v1.0/nasa-power', async (req, res) => {
   try {
     const conn = await connection(dbConfig).catch(e => { return e; });
-    const { rec_id, start_date, end_date, longitude, latitude } = req.body;
-    const api_url = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M&community=RE&longitude=${longitude}&latitude=${latitude}&start=${start_date}&end=${end_date}`;
+    const { rec_id, longitude, latitude } = req.body;
+    //const { rec_id, start_date, end_date, longitude, latitude } = req.body;
+    
+    const start_date = "20160101";
+    const end_date = "20210810";
+    
+    const api_url = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,T2M_MAX,T2M_MIN,RH2M&community=RE&longitude=${longitude}&latitude=${latitude}&start=${start_date}&end=${end_date}`;
     await axios.get(api_url)
       .then(
         response => {
-          let results = response.data.properties.parameter.T2M;
-          let resuts_array = Object.values(results);
-          let sql_string = 'INSERT INTO geo_point_weather_data(rec_id,YEAR,MO,DY,T2M) VALUES';
+          console.log('response received');
+
+          let T2M_ARRAY = Object.values(response.data.properties.parameter.T2M);
+          let T2M_MAX_ARRAY = Object.values(response.data.properties.parameter.T2M_MAX);
+          let T2M_MIN_ARRAY = Object.values(response.data.properties.parameter.T2M_MIN);
+          let RH2M_ARRAY = Object.values(response.data.properties.parameter.RH2M);
+
+          let array_length = T2M_ARRAY.length;             
+         
+          let sql_string = 'INSERT INTO geo_point_weather_data(rec_id,YEAR,MO,DY,T2M,T2M_MAX,T2M_MIN,RH2M) VALUES';
           
           let new_date = null;
           let year = null;
           let month = null;
           let day = null;
 
-          for (let i = 0; i < resuts_array.length; i++) {
+          let T2M = null;
+          let T2M_MAX = null;
+          let T2M_MIN = null;
+          let RH2M = null;
 
+
+          for (let i = 0; i < array_length; i++) {
             new_date = moment(start_date, "YYYYMMDD").add(i,'days');
             year = moment(new_date,"YYYYMMDD").format('YYYY');
             month = moment(new_date,"YYYYMMDD").format('MM');
-            day = moment(new_date,"YYYYMMDD").format('DD');
+            day = moment(new_date,"YYYYMMDD").format('DD');            
+            
+            T2M = T2M_ARRAY[i];
+            T2M_MAX = T2M_MAX_ARRAY[i];
+            T2M_MIN = T2M_MIN_ARRAY[i];
+            RH2M = RH2M_ARRAY[i];
 
-            let delim = (i+1 === resuts_array.length) ? `;` : ',';
-            sql_string += `(${rec_id},${year},${month},${day},${resuts_array[i]})${delim}`;
+            let delim = (i+1 === array_length) ? `;` : ',';
+            sql_string += `(${rec_id},${year},${month},${day},${T2M},${T2M_MAX},${T2M_MIN},${RH2M})${delim}`;
 
             year = null;
             month = null;
             day = null;
           }
+
           let sql = `call sp_save_geo_points_weather_data(${rec_id},${JSON.stringify(sql_string)})`;  
           
-           query(conn, sql).then(
+          query(conn, sql).then(
             response => {
               res.status(200).json({ status: response[0][0].status, message: response[0][0].message })
             })
@@ -100,21 +123,6 @@ router.post('/api/v1.0/nasa-power', async (req, res) => {
     res.send({ status: 0, message: `system error! ${error.message}` })
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // actions on  batch i.e validation or discard or progress &  post
 router.post('/api/v1.0/batches/action', async (req, res) => {

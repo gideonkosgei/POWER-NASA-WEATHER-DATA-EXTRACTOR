@@ -1,0 +1,7 @@
+1. Need to check points that are out of range
+2. Handle asynchronous request
+3. Progress bar
+4. Download report
+5. process points only in cell of 0.5*0.5 resolution
+6. Handle errors
+

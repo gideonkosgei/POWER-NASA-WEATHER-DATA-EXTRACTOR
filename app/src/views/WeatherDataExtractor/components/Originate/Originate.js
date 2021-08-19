@@ -199,7 +199,7 @@ const Originate = props => {
     })(endpoint_upload, rows, cols, _uuid);
   };
 
-y  const options = {
+  const options = {
     filter: false,
     download: false,
     viewColumns: false,

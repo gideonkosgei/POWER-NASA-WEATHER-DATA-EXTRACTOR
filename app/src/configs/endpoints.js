@@ -13,6 +13,7 @@ export const endpoint_request_id_all = {
   headers: headers   
 }; 
 
+
 //fetch geo points
 export const endpoint_fetch_geo_points = {
   url: `${api}/fetch-geo-points`,

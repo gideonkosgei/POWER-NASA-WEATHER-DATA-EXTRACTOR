@@ -12,12 +12,7 @@ let p = [
         title: 'Check Pipeline',
         href: '/batch-processing',
         icon: HomeIcon       
-      },
-      {
-        title: 'View Data',
-        href: '/batch-processing',
-        icon: HomeIcon       
-      }
+      }     
 
     ]
   },
