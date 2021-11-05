@@ -5,3 +5,8 @@
 5. process points only in cell of 0.5*0.5 resolution
 6. Handle errors
 
+
+REFERENCES 
+https://power.larc.nasa.gov/data-access-viewer/
+https://power.larc.nasa.gov/docs/tutorials/service-data-request/api/
+
